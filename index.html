@@ -83,20 +83,21 @@
             var projection = this.getProjection(),
                 padding = 10;
 
-            records_data = []
+            records_data = [{'x':0, 'y':0, 'i':0}]
 
             d3.csv("vis_data_path.csv", function(records, error) {
 
                 var iterator = 0
 
-                records = records.slice(0,155);
+                // records = records.slice(0,155);
+                record = records[152];
 
-                records.forEach(function(record){
+                // records.forEach(function(record){
+
+                  console.log(record);
 
                   // console.log(iterator);
                   iterator = iterator + 1;
-
-                  // console.log(record);
 
                   loc = record['location'];
                   time = record['loc_time']
@@ -107,23 +108,25 @@
                   if(route != ''){
 
                       //check if the source and destination are same  
-                      data = JSON.parse(route.replace(/'/g, '"'))
-                      console.log(data);
+                      route = JSON.parse(route.replace(/'/g, '"'))
+
+                      route.forEach(function(line, i){
+                        records_data.push({'x':line['x1'], 'y':line['y1'], 'i':i});
+                      });
+
+                      console.log(records_data);
 
                       //Build x and y scales appropriate to it.
-                      x1 = d3.scale.linear().range([0,500]).domain(d3.extent(data.map(function(d)  {return d.x1} ))) 
-                      y1 = d3.scale.linear().range([0,500]).domain(d3.extent(data.map(function(d)  {return d.y1} )))
-                      // x2 = d3.scale.linear().range([0,500]).domain(d3.extent(data.map(function(d)  {return d.x2} ))) 
-                      // y2 = d3.scale.linear().range([0,500]).domain(d3.extent(data.map(function(d)  {return d.y2} )))
-
+                      x = d3.scale.linear().range([0,500]).domain(d3.extent(records_data.map(function(d)  {return d.x} ))) 
+                      y = d3.scale.linear().range([0,500]).domain(d3.extent(records_data.map(function(d)  {return d.y} )))
+                      
                       layout = d3.layout.trail() 
 
                       layout = layout 
-                          .positioner(function(d) {return [x1(d['x1']),y1(d['y1'])]}) //, x2(d['x2']), y2(d['y2'])
+                          .positioner(function(d) {return [x(d['x']),y(d['y'])]})
                           .coordType("xy")
-                      // .sort(function(a,b) {return a.i-b.i})
 
-                      var out = layout.data(data).layout()
+                      var out = layout.data(records_data).layout()
 
                       console.log(out);
 
@@ -176,7 +179,7 @@
 
                       // }
                     }
-                });
+                // });
             });
 
 
