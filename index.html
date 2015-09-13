@@ -43,21 +43,16 @@
     <script src="./Path demonstration_files/pathlayout.js"></script>
     <script type="text/javascript">
 
-      // Create the Google Map…
       var map = new google.maps.Map(d3.select("#map").node(), {
         zoom:8,
         center: new google.maps.LatLng(21.401817, 39.839680),
         mapTypeId: google.maps.MapTypeId.TERRAIN
       });
 
-      // Load the station data. When the data comes back, create an overlay.
-      // d3.json("stations.json", function(data) {
       var overlay = new google.maps.OverlayView();
 
-      // Add the container when the overlay is added to the map.
       overlay.onAdd = function(){
           
-
           // var stationsLayer = d3.select(this.getPanes().overlayLayer).append("div")
           //     .attr("class", "stations");
 
@@ -66,24 +61,15 @@
               .attr("width",500)
               .attr("height",500);
 
-          // Draw each marker as a separate SVG element.
-          // We could use a single SVG, but what size would it have?
+              console.log(this.bounds_);
+
           overlay.draw = function() {
-              //TRAIL CODE STARTS
-            // var data = [{"x":0,"y":0,"i":0}]
 
-            // d3.range(1000).forEach(function(i) {
-            //   data.push({"i":i+1,
-            //   "x":data[data.length-1]["x"]+(Math.random())-.5,
-            //   "y":data[data.length-1]["y"]+(Math.random())-.5})
-            // })
-
-            //time, location, path, screen_name, ind
 
             var projection = this.getProjection(),
                 padding = 10;
 
-            records_data = [{'x':0, 'y':0, 'i':0}]
+            records_data = []
 
             d3.csv("vis_data_path.csv", function(records, error) {
 
@@ -111,20 +97,37 @@
                       route = JSON.parse(route.replace(/'/g, '"'))
 
                       route.forEach(function(line, i){
-                        records_data.push({'x':line['x1'], 'y':line['y1'], 'i':i});
+                        records_data.push({'x':line['y1'], 'y':line['x1'], 'i':i});
                       });
 
                       console.log(records_data);
 
-                      //Build x and y scales appropriate to it.
-                      x = d3.scale.linear().range([0,500]).domain(d3.extent(records_data.map(function(d)  {return d.x} ))) 
-                      y = d3.scale.linear().range([0,500]).domain(d3.extent(records_data.map(function(d)  {return d.y} )))
-                      
+                      // //Build x and y scales appropriate to it.
+                      // x = d3.scale.linear().range([0,500]).domain(d3.extent(records_data.map(function(d)  {return d.x} ))) 
+                      // y = d3.scale.linear().range([0,500]).domain(d3.extent(records_data.map(function(d)  {return d.y} )))
+
+                      console.log(map.getBounds().getSouthWest());
+                      console.log(map.getBounds().getNorthEast());
+                      var sw = projection.fromLatLngToContainerPixel(map.getBounds().getSouthWest());
+                      var ne = projection.fromLatLngToDivPixel(map.getBounds().getNorthEast());
+
+
+                      console.log(sw);
+                      console.log(ne);
+
                       layout = d3.layout.trail() 
 
+                      function transform(d) {
+                        console.log(d);
+                        d = new google.maps.LatLng(d["x"], d["y"]);
+                        d = projection.fromLatLngToDivPixel(d);
+                        console.log(d);
+                        return [d.x, d.y];
+                      }
+
                       layout = layout 
-                          .positioner(function(d) {return [x(d['x']),y(d['y'])]})
-                          .coordType("xy")
+                          .positioner(transform)
+                          .coordType("xy");//function(d) {return [x(d['x']),y(d['y'])]}
 
                       var out = layout.data(records_data).layout()
 
@@ -135,18 +138,18 @@
                       line
                         .enter()
                         .append("line")
-                        .style("stroke-width",3)
+                        .style("stroke-width",10)
                         .style("stroke","orange")
                         .style("opacity",10) 
                         .attr("x0",function(d) {return d['x0']})
-                        .attr("x1",function(d) {return parseFloat(d.x1)}) 
-                        .attr("y1",function(d) {return parseFloat(d.y1)}) 
-                        .attr("y2",function(d) {return parseFloat(d.y1)}) 
-                        .attr("x2",function(d) {return parseFloat(d.x1)})
+                        .attr("x1",function(d) {return d.x1}) 
+                        .attr("y1",function(d) {return d.y1}) 
+                        .attr("y2",function(d) {return d.y1}) 
+                        .attr("x2",function(d) {return d.x1})
                         .transition() 
                         .delay(function(d,i)   {return i*100})               
-                        .attr("y2",function(d, i) {return parseFloat(d.y2)}) 
-                        .attr("x2",function(d, i) {return parseFloat(d.x2)})
+                        .attr("y2",function(d, i) {return d.y2}) 
+                        .attr("x2",function(d, i) {return d.x2})
                         .transition()
                         .duration(1000)
                         .style("opacity",0.2)
