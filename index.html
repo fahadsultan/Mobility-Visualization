@@ -31,8 +31,8 @@
       }
 
       .stations circle {
-        fill: brown;
-        stroke: black;
+        fill: orange;
+        stroke: orange;
         stroke-width: 1.5px;
       }
 
@@ -44,8 +44,8 @@
     <script type="text/javascript">
 
       var map = new google.maps.Map(d3.select("#map").node(), {
-        zoom:3,
-        center: new google.maps.LatLng(21.401817, 39.839680),
+        zoom:11,
+        center: new google.maps.LatLng(21.5433, 39.1728),//  21.401817, 39.839680
         mapTypeId: google.maps.MapTypeId.TERRAIN
       });
 
@@ -67,108 +67,105 @@
             var projection = this.getProjection(),
                 padding = 10;
 
-            records_data = []
 
             d3.csv("vis_data_path.csv", function(records, error) {
 
                 var iterator = 0
 
-                records = records.slice(0,200);
+                records = records.slice(0,1000);// record = records[152];
 
-                // record = records[152];
+                paths = records.filter (function(d,i){ return d['path'] != ''})
+                points = records.filter(function(d,i){ return d['path'] == ''})
 
-                records.forEach(function(record){
+                users_data = {}
+                last_user = ''
+                records_data = []
 
-                  iterator = iterator + 1;
+                paths.forEach(function(record){
 
-                  loc = record['location'];
-                  time = record['loc_time']
-                  route = record['path']
-                  ind = record['ind']
-                  screen_name = record['screen_name']
+                    //check if the source and destination are same  
+                    route = JSON.parse(record['path'].replace(/'/g, '"'))
 
-                  if(route != ''){
+                    route.forEach(function(line, i){
+                      records_data.push({'x':line['x1'], 'y':line['y1'], 'i':i});
+                    });
 
-                      //check if the source and destination are same  
-                      route = JSON.parse(route.replace(/'/g, '"'))
+                    console.log(records_data);
 
-                      route.forEach(function(line, i){
-                        records_data.push({'x':line['y1'], 'y':line['x1'], 'i':i});
-                      });
+                    layout = d3.layout.trail() 
 
-                      layout = d3.layout.trail() 
-
-                      function transform(d) {
-                        d = new google.maps.LatLng(d["x"], d["y"]);
-                        d = projection.fromLatLngToDivPixel(d);
-                        return [d.x, d.y];
-                      }
-
-                      layout = layout 
-                          .positioner(transform)
-                          .coordType("xy");//function(d) {return [x(d['x']),y(d['y'])]}
-
-                      var out = layout.data(records_data).layout()
-
-                      var line = d3.select("#main").selectAll("line").data(out)
-
-                      line
-                        .enter()
-                        .append("line")
-                        .style("stroke-width",10)
-                        .style("stroke","orange")
-                        .style("opacity",10) 
-                        .attr("x0",function(d) {return d['x0']})
-                        .attr("x1",function(d) {return d.x1}) 
-                        .attr("y1",function(d) {return d.y1}) 
-                        .attr("y2",function(d) {return d.y1}) 
-                        .attr("x2",function(d) {return d.x1})
-                        .transition() 
-                        // .delay(function(d,i)   {return i*100})               
-                        .attr("y2",function(d, i) {return d.y2}) 
-                        .attr("x2",function(d, i) {return d.x2})
-                        .transition()
-                        // .duration(1000)
-                        .style("opacity",0.2)
-                        // .remove()
-
-                  }
-                  else{
-
-                      console.log('Within else');
-
-                      loc = JSON.parse(loc);
-                      arr = [{'x':loc[0], 'y':loc[1]}];
-                      
-                      new_arr = []
-                      arr = arr.forEach(function(d) {
-                        // d = new google.maps.LatLng(d.value[1], d.value[0]);
-                        // console.log(d);
-                        d = new google.maps.LatLng(d['x'], d['y']);
-                        d = projection.fromLatLngToDivPixel(d);
-                        // console.log(d);  
-                        new_arr.push(d);
-                      });
-
-                      var marker = stationsLayer.selectAll("svg")
-                          .data(new_arr)
-                        .enter().append("svg:svg")
-                            .style("left", function(d){ console.log(d.x);(d.x - padding) + "px"})
-                            .style("top", function(d){console.log(d.y); (d.y - padding) + "px"})
-                          .attr("class", "marker");
-;
-
-                      // Add a circle.
-                      marker.append("svg:circle")
-                          .attr("r", 4.5)
-                          .attr("cx", padding)
-                          .attr("cy", padding);
-
-
-                      
-
+                    function transform(d) {
+                      d = new google.maps.LatLng(d["x"], d["y"]);
+                      d = projection.fromLatLngToDivPixel(d);
+                      return [d.x, d.y];
                     }
+
+                    layout = layout 
+                        .positioner(transform)
+                        .coordType("xy");//function(d) {return [x(d['x']),y(d['y'])]}
+
+                    var out = layout.data(records_data).layout()
+
+                    var line = d3.select("#main").selectAll("line").data(out)
+
+                    line
+                      .enter()
+                      .append("line")
+                      .style("stroke-width",3)
+                      .style("stroke","orange")
+                      .style("opacity",10) 
+                      .attr("x0",function(d) {return d['x0']})
+                      .attr("x1",function(d) {return d.x1}) 
+                      .attr("y1",function(d) {return d.y1}) 
+                      .attr("y2",function(d) {return d.y1}) 
+                      .attr("x2",function(d) {return d.x1})
+                      .transition() 
+                      .delay(function(d,i)   {return i*100})               
+                      .attr("y2",function(d, i) {return d.y2}) 
+                      .attr("x2",function(d, i) {return d.x2})
+                      .transition()
+                      .duration(1000)
+                      .style("opacity",0.2)//0.2
+                      // .remove()
                 });
+
+                  points_data = []
+
+                  points.forEach(function(d,i){
+                    loc = d['location']
+                    loc = JSON.parse(loc);
+                    d = new google.maps.LatLng(loc[0], loc[1]);
+                    d = projection.fromLatLngToDivPixel(d);
+                    points_data.push(d);
+                  });
+                  
+                  var marker = stationsLayer.selectAll("svg")
+                      .data(points_data)
+                      .each(set_location)
+                    .enter().append("svg:svg")
+                      .each(set_location)
+                      .attr("class", "marker");
+
+                  function set_location(d){
+                    return d3.select(this)
+                        .style("left", (d.x - padding) + "px")
+                        .style("top",  (d.y - padding) + "px");
+                  }
+
+                  // Add a circle.
+                  marker.append("svg:circle")
+                      .attr("cx", padding)
+                      .attr("cy", padding)
+                      .transition() 
+                      .delay(function(d,i)   {return i*100})
+                      .transition()
+                      .duration(2000)
+                      .attr("r", 30)
+                      .delay(function(d,i)   {return i*100})
+                      .duration(1000)
+                      .attr("r", 4.5)
+                      .style("opacity",0.3);
+
             });
 
 
