@@ -6,8 +6,8 @@
     <script type="text/javascript" src="http://mbostock.github.com/d3/d3.js?1.29.1"></script>
     <style type="text/css">
       html, body, #map {
-        width: 500px;
-        height: 500px;
+        width: 1000px;
+        height: 1000px;
         margin: 0;
         padding: 0;
       }
@@ -58,8 +58,8 @@
 
           var layer = d3.select(this.getPanes().overlayLayer).append("svg")
               .attr("id", "main")
-              .attr("width",500)
-              .attr("height",500);
+              .attr("width",1000)
+              .attr("height",1000);
 
           overlay.draw = function() {
 
@@ -85,11 +85,12 @@
 
                     if(record['screen_name'] != last_user){
                       
-                      users_data[last_user] = records_data;
+                      // records_data = []
+                      // users_data[last_user] = records_data;
                       
                       last_user = record['screen_name'];
 
-                      records_data = (record['screen_name'] in users_data) ? users_data[record['screen_name']] : [];
+                      // records_data = (record['screen_name'] in users_data) ? users_data[record['screen_name']] : [];
                     
                     }
                     //check if the source and destination are same  
@@ -98,6 +99,8 @@
                     route.forEach(function(line, i){
                       records_data.push({'x':line['x1'], 'y':line['y1'], 'i':i});
                     });
+
+                    console.log(records_data);
 
                     layout = d3.layout.trail() 
 
@@ -166,14 +169,9 @@
                       .attr("cy", padding)
                       .transition() 
                       .delay(function(d,i)   {return i*100})
-                      .duration(2000)
+                      .duration(200)
                       .attr("r", 10)
-                      .transition()
-                      .delay(function(d,i)   {return i*100})
-                      .duration(1000)
-                      .attr("r", 4.5)
-                      .style("opacity",0.3);
-
+                      .each("end", function(){ d3.select(this).transition().duration(1000).attr("r", 4.5).style("opacity", 0.3)});
             });
 
 
