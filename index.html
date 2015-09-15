@@ -24,8 +24,8 @@
       }
 
       .stations svg {
-        width: 60px;
-        height: 20px;
+        width: 1000px;
+        height: 1000px;
         padding-right: 100px;
         font: 10px sans-serif;
       }
@@ -43,8 +43,12 @@
     <script src="./D3-trail/pathlayout.js"></script>
     <script type="text/javascript">
 
+
+      var ZOOM = 13;
       var map = new google.maps.Map(d3.select("#map").node(), {
-        zoom:11,
+        zoom:ZOOM,
+        minZoom:ZOOM,
+        maxZoom:ZOOM,
         center: new google.maps.LatLng(21.5433, 39.1728),//  21.401817, 39.839680
         mapTypeId: google.maps.MapTypeId.TERRAIN
       });
@@ -56,6 +60,9 @@
           var stationsLayer = d3.select(this.getPanes().overlayLayer).append("div")
               .attr("class", "stations");
 
+          var width = document.getElementById("map").offsetWidth;
+          console.log(width);
+
           var layer = d3.select(this.getPanes().overlayLayer).append("svg")
               .attr("id", "main")
               .attr("width",1000)
@@ -65,14 +72,14 @@
 
 
             var projection = this.getProjection(),
-                padding = 10;
+                padding = 20;
 
 
             d3.csv("vis_data_path.csv", function(records, error) {
 
                 var iterator = 0
 
-                records = records.slice(0,1000);// record = records[152];
+                // records = records.slice(0,1000);// record = records[152];
 
                 paths = records.filter (function(d,i){ return d['path'] != ''})
                 points = records.filter(function(d,i){ return d['path'] == ''})
@@ -83,9 +90,10 @@
 
                 paths.forEach(function(record){
 
+
                     if(record['screen_name'] != last_user){
                       
-                      // records_data = []
+                      records_data = []
                       // users_data[last_user] = records_data;
                       
                       last_user = record['screen_name'];
@@ -110,32 +118,38 @@
                       return [d.x, d.y];
                     }
 
-                    layout = layout 
+                    layout = layout
                         .positioner(transform)
                         .coordType("xy");//function(d) {return [x(d['x']),y(d['y'])]}
 
                     var out = layout.data(records_data).layout()
 
-                    var line = d3.select("#main").selectAll("line").data(out)
+                    var line = d3.select("#main").selectAll(".route"+iterator).data(out)
 
                     line
                       .enter()
                       .append("line")
-                      .style("stroke-width",3)
+                      .attr("class", "route"+iterator)
+                      .style("stroke-width",5)
                       .style("stroke","orange")
                       .style("opacity",10) 
                       .attr("x0",function(d) {return d['x0']})
                       .attr("x1",function(d) {return d.x1}) 
-                      .attr("y1",function(d) {return d.y1}) 
+                      .attr("y1",function(d) {return d.y1})
                       .attr("y2",function(d) {return d.y1}) 
                       .attr("x2",function(d) {return d.x1})
-                      .transition() 
-                      .delay(function(d,i)   {return i*100})               
-                      .attr("y2",function(d, i) {return d.y2}) 
+                      .transition()
+                      .each("start", function(){})
+                      .delay(function(d,i)   {return iterator*1500+(i*1000)})
+                      .duration(1000)
+                      .attr("y2",function(d, i) {return d.y2})
                       .attr("x2",function(d, i) {return d.x2})
                       .transition()
-                      .duration(1000)
+                      .duration(10000)
                       .style("opacity",0.2)
+
+
+                    iterator = iterator + 1;
                 });
 
                 console.log(users_data);
@@ -170,8 +184,8 @@
                       .transition() 
                       .delay(function(d,i)   {return i*100})
                       .duration(200)
-                      .attr("r", 10)
-                      .each("end", function(){ d3.select(this).transition().duration(1000).attr("r", 4.5).style("opacity", 0.3)});
+                      .attr("r", 20)
+                      .each("end", function(){ d3.select(this).transition().duration(1000).attr("r", 10).style("opacity", 0.3)});
             });
 
 
