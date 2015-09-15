@@ -83,14 +83,21 @@
 
                 paths.forEach(function(record){
 
+                    if(record['screen_name'] != last_user){
+                      
+                      users_data[last_user] = records_data;
+                      
+                      last_user = record['screen_name'];
+
+                      records_data = (record['screen_name'] in users_data) ? users_data[record['screen_name']] : [];
+                    
+                    }
                     //check if the source and destination are same  
                     route = JSON.parse(record['path'].replace(/'/g, '"'))
 
                     route.forEach(function(line, i){
                       records_data.push({'x':line['x1'], 'y':line['y1'], 'i':i});
                     });
-
-                    console.log(records_data);
 
                     layout = d3.layout.trail() 
 
@@ -125,9 +132,10 @@
                       .attr("x2",function(d, i) {return d.x2})
                       .transition()
                       .duration(1000)
-                      .style("opacity",0.2)//0.2
-                      // .remove()
+                      .style("opacity",0.2)
                 });
+
+                console.log(users_data);
 
                   points_data = []
 
@@ -158,9 +166,9 @@
                       .attr("cy", padding)
                       .transition() 
                       .delay(function(d,i)   {return i*100})
-                      .transition()
                       .duration(2000)
-                      .attr("r", 30)
+                      .attr("r", 10)
+                      .transition()
                       .delay(function(d,i)   {return i*100})
                       .duration(1000)
                       .attr("r", 4.5)
