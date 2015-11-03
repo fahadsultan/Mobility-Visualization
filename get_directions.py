@@ -10,7 +10,7 @@ vis_data.sort('loc_time')
 
 REQUEST_URL_BASIC = "https://maps.googleapis.com/maps/api/directions/json?"
 
-KEY = 'AIzaSyCpHbZc8tRVUNzEIBCq1qLN39jhLcYdP0E'
+KEY = open('key').read()
 vis_data['path'] = ''
 
 last_location = {}
