@@ -4,6 +4,7 @@
     <meta name="viewport" content="initial-scale=1.0, user-scalable=no"/>
     <script type="text/javascript" src="http://maps.google.com/maps/api/js?sensor=true"></script>
     <script type="text/javascript" src="http://mbostock.github.com/d3/d3.js?1.29.1"></script>
+    <script type="text/javascript" src="config.js"></script>
     <style type="text/css">
       html, body, #map {
         width: 100%;
@@ -42,15 +43,15 @@
     <script src="./D3-trail/pathlayout.js"></script>
     <script type="text/javascript">
 
-      var SPEED = 1000;
-      var ZOOM = 13;
-      
+      var SPEED = Config.SPEED;
+      var ZOOM = Config.ZOOM;
       var map = new google.maps.Map(d3.select("#map").node(), {
         zoom:ZOOM,
         minZoom:ZOOM,
         maxZoom:ZOOM,
-        center: new google.maps.LatLng(21.5933, 39.1928),//  21.401817, 39.839680
-        mapTypeId: google.maps.MapTypeId.TERRAIN
+        center: new google.maps.LatLng(Config.MAP_CENTER_LNG, Config.MAP_CENTER_LAT),//  21.5933, 39.1928
+        mapTypeId: google.maps.MapTypeId.TERRAIN,
+        disableDefaultUI: true
       });
 
       var overlay = new google.maps.OverlayView();
@@ -75,7 +76,7 @@
                 padding = 20;
 
 
-            d3.csv("vis_data_path.csv", function(records, error) {
+            d3.csv("data.csv", function(records, error) {
 
                 var iterator = 0
 
@@ -92,14 +93,14 @@
                 paths.forEach(function(record){
 
 
-                    if(record['screen_name'] != last_user){
+                    if(record['ID'] != last_user){
                       
                       records_data = []
                       // users_data[last_user] = records_data;
                       
-                      last_user = record['screen_name'];
+                      last_user = record['ID'];
 
-                      // records_data = (record['screen_name'] in users_data) ? users_data[record['screen_name']] : [];
+                      // records_data = (record['ID'] in users_data) ? users_data[record['ID']] : [];
                     
                     }
                     //check if the source and destination are same  
@@ -154,7 +155,7 @@
                   points_data = []
 
                   points.forEach(function(d,i){
-                    loc = d['location']
+                    loc = d['Location']
                     loc = JSON.parse(loc);
                     d = new google.maps.LatLng(loc[0], loc[1]);
                     d = projection.fromLatLngToDivPixel(d);
@@ -183,7 +184,7 @@
                       .delay(function(d,i)   {return i*(SPEED/10)})
                       .duration(800)
                       .attr("r", 20)
-                      .each("end", function(){ d3.select(this).transition().duration((SPEED/10)).attr("r", 10).style("opacity", 0.2)});
+                      .each("end", function(){ d3.select(this).transition().duration((SPEED/10)).attr("r", 10).style("opacity", 0.01)});
             });
 
 
